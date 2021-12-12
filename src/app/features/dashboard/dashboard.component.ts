@@ -1,14 +1,15 @@
 import {NumberChartCardDataModel} from '../../models/charts-data.model';
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {StatisticsService} from 'src/app/services/statistics.service';
-import {forkJoin, Subject} from "rxjs";
+import {forkJoin, startWith, Subject} from "rxjs";
 import {CommitService} from "../../services/commit.service";
 import { ChartOptions, ChartType, ChartDataset } from 'chart.js';
 import {StateService} from "../../services/state.service";
 import {MatSelectChange} from "@angular/material/select";
 
 import DataLabelsPlugin from 'chartjs-plugin-datalabels';
-import {CommitEventTypeEnum} from "../../models/commit-data.model";
+import {CommitDataModel, CommitEventTypeEnum} from "../../models/commit-data.model";
+import {TaskModel} from "../../models/task-data.model";
 
 @Component({
   selector: 'app-dashboard',
@@ -33,6 +34,9 @@ export class DashboardComponent implements OnInit, OnDestroy{
   public commitTimeBarChartLabels: string[] = [];
   public commitTimeBarChartData: ChartDataset[] = [];
 
+  public commitGanttChartData: TaskModel[] = [];
+  public commitPhaseGanttChartData: TaskModel[] = [];
+
   /**
    * The data to be displayed
    */
@@ -40,7 +44,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
 
   public availableUsers: string[] = [];
 
-  public averageTime: any[] = [];
+  public commitStatistics: any[] = [];
 
   public cardColor: string = '#232837';
 
@@ -100,12 +104,19 @@ export class DashboardComponent implements OnInit, OnDestroy{
   private _getAverageTime(): void {
     this.statisticsService.getAverageTime()
       .subscribe((response) => {
-        this.averageTime = response;
-        this.commitTimeBarChartLabels = this.averageTime.map(commit => 'Commit #'+ commit.commit_id);
+        this.commitStatistics = response;
+        this.commitTimeBarChartLabels = this.commitStatistics.map(commit => 'Commit #'+ commit.commit_id);
         this.commitTimeBarChartData = this._barChartDataBuilder(response);
+         // this.commitGanttChartData = this._ganttChartDataBuilder(response);
+        this.commitGanttChartData = this._ganttPhasesChartDataBuilder(response);
       })
   }
 
+  /**
+   * Builds the data groups for the bar chart
+   * @param data
+   * @private
+   */
   private _barChartDataBuilder(data: any): ChartDataset[] {
       let result: ChartDataset[] = [];
       let allEvents = {
@@ -143,6 +154,55 @@ export class DashboardComponent implements OnInit, OnDestroy{
     return result;
   }
 
+  private _ganttChartDataBuilder(data: any): TaskModel[] {
+    let result: TaskModel[] = [];
+    data.map((commit: any, index: number)  => {
+      let commitData: TaskModel =  {
+        groupName: commit.status? commit.status : commit.final_event === 'merge' ? 'success' : 'failed',
+        groupOrder: index + 1,
+        taskName: "Commit " + commit.commit_id,
+        taskId: parseInt(commit.commit_id),
+        start: commit.start_time,
+        end: commit.end_time,
+        taskDependencies: [],
+        donePercentage: this._calculateCommitDonePercentage(commit.final_event),
+        owner: commit.user,
+        time: commit.commitLifeTime,
+        status: commit.final_event,
+        image: ''
+      }
+      result.push(commitData);
+    })
+    return result;
+  }
+
+  private _ganttPhasesChartDataBuilder(data: any): TaskModel[] {
+    let result: TaskModel[] = [];
+    data.map((commit: any, index: number)  => {
+      commit.events.forEach((event: any) => {
+        // @ts-ignore
+        let commitOrder = commit.commit_id*10 + CommitEventTypeEnum[event.name];
+        let commitData: TaskModel =  {
+          groupName: "Commit " + commit.commit_id,
+          groupOrder: parseInt(commitOrder),
+          taskName: event.name,
+          taskId: commit.commit_id + ' ' + event.name,
+          start: event.start_time,
+          end: event.end_time,
+          taskDependencies: [],
+          donePercentage: event.status === 'success' || event.status === 'approved' ? 100 : 0,
+          owner: commit.user,
+          time: event.time,
+          event: event.name,
+          status: event.status? event.status : event.name === 'merge' ? 'success' : 'failed',
+          image: ''
+        }
+        result.push(commitData);
+      })
+    })
+    return result;
+  }
+
   /**
    * Filters the data regarding the selected user
    * @param user
@@ -158,6 +218,24 @@ export class DashboardComponent implements OnInit, OnDestroy{
     this._getAverageTime();
   }
 
+  private _calculateCommitDonePercentage(commitPhase: string): number {
+    switch (commitPhase) {
+      case 'pull':
+        return 16.6;
+      case 'patch':
+        return 33.2;
+      case 'build':
+        return 49.8;
+      case 'sanity':
+        return 66.4;
+      case 'review':
+        return 83;
+      case 'merge':
+        return 100;
+      default:
+        return 0;
+    }
+  }
 
 
   /**

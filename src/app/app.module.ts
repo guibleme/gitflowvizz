@@ -19,6 +19,9 @@ import {MatFormField, MatFormFieldModule} from "@angular/material/form-field";
 import {MatSelectModule} from "@angular/material/select";
 import {MatMenuModule} from "@angular/material/menu";
 import { NgChartsModule } from 'ng2-charts';
+import {NgxEchartsModule} from "ngx-echarts";
+import {GanttChartModule} from "iamferraz-gantt-chart";
+import {GanttComponent} from "./features/gantt/gantt.component";
 
 @NgModule({
   declarations: [
@@ -26,6 +29,7 @@ import { NgChartsModule } from 'ng2-charts';
     DashboardComponent,
     CommitEventTypePipe,
     CommitStatusPipe,
+    GanttComponent
   ],
   imports: [
     BrowserModule,
@@ -44,6 +48,10 @@ import { NgChartsModule } from 'ng2-charts';
     MatSelectModule,
     MatMenuModule,
     NgChartsModule,
+    NgxEchartsModule.forRoot({
+      echarts: () => import('echarts')
+    }),
+    GanttChartModule
   ],
   providers: [
   ],

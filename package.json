@@ -22,7 +22,10 @@
     "@angular/router": "~13.1.0",
     "chart.js": "^3.6.0",
     "chartjs-plugin-datalabels": "^2.0.0",
+    "echarts": "^5.2.2",
+    "iamferraz-gantt-chart": "^1.0.15",
     "ng2-charts": "^3.0.1",
+    "ngx-echarts": "^8.0.1",
     "rxjs": "~7.4.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
@@ -40,6 +43,7 @@
     "karma-coverage": "~2.1.0",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
+    "resize-observer-polyfill": "^1.5.1",
     "typescript": "~4.5.2"
   }
 }

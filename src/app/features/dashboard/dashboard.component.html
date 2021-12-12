@@ -17,7 +17,7 @@
       <div class="mat-card-subtitle number-card-name">{{data.name}}</div>
     </mat-card>
   </section>
-  <div *ngIf="averageTime" class="commit-life-time-chart">
+  <div *ngIf="commitStatistics" class="commit-life-time-chart">
     <mat-card>
       <div class="mat-card-subtitle number-card-name">Commit lifetime x phase (in minutes)</div>
       <canvas baseChart
@@ -30,4 +30,17 @@
       </canvas>
     </mat-card>
   </div>
+
+  <mat-card class="gantt-chart">
+    <gui-gantt
+      *ngIf="commitGanttChartData"
+      [(taskData)]="commitGanttChartData"
+      [enableDataZoom]="true"
+      [enableGroup]="true"
+      [colorByStatus]="true"
+      [chartTitle]="'Commits timeline'"
+      [dateFormat]="'{hh}:{mm}'"
+      [colours]="['#c15046', '#5fb07d']">
+    </gui-gantt>
+  </mat-card>
 </div>

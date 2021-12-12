@@ -9,16 +9,16 @@ export interface CommitDataModel {
 }
 
 export enum CommitEventTypeEnum {
-  pull = 'pull',
-  patch = 'patch',
-  build = 'build',
-  sanity = 'sanity',
-  review = 'review',
-  merge = 'merge'
+  pull = 0,
+  patch = 1,
+  build = 2,
+  sanity = 3,
+  review = 4,
+  merge = 5
 }
 
 export enum CommitStatusTypeEnum {
-  success = 'success',
-  failed = 'failed',
-  approved = 'approved'
+  failed = 0 ,
+  success = 1 ,
+  approved = 2
 }

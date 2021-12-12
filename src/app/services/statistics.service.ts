@@ -78,6 +78,51 @@ export class StatisticsService {
                   events.push({
                     name: commitEvent.event,
                     time: this.calculateTimeDifference(commitEvent.start, commitEvent.end).toFixed(2),
+                    status: commitEvent.status,
+                    start_time: commitEvent.start,
+                    end_time: commitEvent.end
+                  })
+                })
+                commitStatistics.push({
+                  commit_id: commitId,
+                  final_event: commitFinalEvent,
+                  final_status: commitFinalStatus,
+                  start_time: filteredCommits[0].start,
+                  end_time: filteredCommits[filteredCommits.length - 1].end,
+                  commitLifeTime: commitLifeTime.toFixed(2),
+                  user: filteredCommits[0].user,
+                  events: events.sort((a,b) =>  new Date(a.start).getTime() - new Date(b.start).getTime())
+                })
+              })
+              // @ts-ignore
+              ob.next(commitStatistics);
+              ob.complete();
+            });
+        });
+    });
+  }
+
+  public getCommitStats(): Observable<any> {
+    return new Observable((ob) => {
+      this.commitService.getAllCommits()
+        .subscribe((commits) => {
+          this.commitService.getAllCommits()
+            .subscribe((commits) => {
+              // @ts-ignore
+              let commitStatistics = [];
+              const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
+              commitIds.forEach((commitId) => {
+                let filteredCommits = commits
+                  .filter((commit: CommitDataModel) => commit.commit_id === commitId)
+                  .sort((a,b) =>  new Date(a.start).getTime() - new Date(b.start).getTime())
+                let commitFinalStatus = filteredCommits[filteredCommits.length - 1].status;
+                let commitFinalEvent = filteredCommits[filteredCommits.length - 1].event;
+                let commitLifeTime = this.calculateTimeDifference(filteredCommits[0].start, filteredCommits[filteredCommits.length - 1].end);
+                let events: any[] = [];
+                filteredCommits.forEach(commitEvent => {
+                  events.push({
+                    name: commitEvent.event,
+                    time: this.calculateTimeDifference(commitEvent.start, commitEvent.end).toFixed(2),
                     status: commitEvent.status
                   })
                 })
@@ -88,6 +133,7 @@ export class StatisticsService {
                   start_time: filteredCommits[0].start,
                   end_time: filteredCommits[filteredCommits.length - 1].end,
                   commitLifeTime: commitLifeTime.toFixed(2),
+                  user: filteredCommits[0].user,
                   events: events
                 })
               })
