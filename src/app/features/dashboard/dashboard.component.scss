@@ -1,0 +1,28 @@
+:host {
+  .content {
+    display: flex;
+    margin: 48px auto 32px;
+    padding: 0 16px;
+    max-width: 960px;
+    flex-direction: column;
+  }
+  .dashboard-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .number-card-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .commit-life-time-chart {
+    margin-top: 1rem;
+  }
+
+}

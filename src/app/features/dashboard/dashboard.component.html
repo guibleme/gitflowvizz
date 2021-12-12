@@ -1,0 +1,33 @@
+
+<div class="content">
+  <div class="dashboard-title">
+    <H1 class="mat-title">Dashboard</H1>
+    <span><mat-form-field appearance="fill">
+    <mat-label>Select a user</mat-label>
+    <mat-select>
+      <mat-option>All</mat-option>
+      <mat-option *ngFor="let user of availableUsers" [value]="user">{{user}}</mat-option>
+    </mat-select>
+  </mat-form-field></span>
+  </div>
+  <mat-divider></mat-divider>
+  <section class="number-card-row">
+    <mat-card *ngFor="let data of numberCardsData">
+      <div class="mat-title number-card-value">{{data.value}} {{data.unit}}</div>
+      <div class="mat-card-subtitle number-card-name">{{data.name}}</div>
+    </mat-card>
+  </section>
+  <div *ngIf="averageTime" class="commit-life-time-chart">
+    <mat-card>
+      <div class="mat-card-subtitle number-card-name">Commit life time</div>
+      <canvas baseChart
+              [datasets]="commitTimeBarChartData"
+              [labels]="commitTimeBarChartLabels"
+              [options]="commitTimeBarChartOptions"
+              [plugins]="commitTimeBarChartPlugins"
+              [legend]="commitTimeBarChartLegend"
+              [type]="commitTimeBarChartType">
+      </canvas>
+    </mat-card>
+  </div>
+</div>
