@@ -19,6 +19,6 @@ export enum CommitEventTypeEnum {
 
 export enum CommitStatusTypeEnum {
   success = 'success',
-  failure = 'failure',
+  failed = 'failed',
   approved = 'approved'
 }

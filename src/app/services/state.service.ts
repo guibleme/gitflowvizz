@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class StateService {
 
-  public currentlySelectedUser: string;
+  public currentlySelectedUser: string = '';
 
   constructor() { }
 

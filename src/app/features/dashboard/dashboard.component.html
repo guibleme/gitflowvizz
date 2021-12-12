@@ -4,7 +4,7 @@
     <H1 class="mat-title">Dashboard</H1>
     <span><mat-form-field appearance="fill">
     <mat-label>Select a user</mat-label>
-    <mat-select>
+    <mat-select (selectionChange)="filterUser($event)">
       <mat-option>All</mat-option>
       <mat-option *ngFor="let user of availableUsers" [value]="user">{{user}}</mat-option>
     </mat-select>
@@ -19,7 +19,7 @@
   </section>
   <div *ngIf="averageTime" class="commit-life-time-chart">
     <mat-card>
-      <div class="mat-card-subtitle number-card-name">Commit life time</div>
+      <div class="mat-card-subtitle number-card-name">Commit lifetime x phase (in minutes)</div>
       <canvas baseChart
               [datasets]="commitTimeBarChartData"
               [labels]="commitTimeBarChartLabels"

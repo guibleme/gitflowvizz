@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {CommitService} from './commit.service';
 import {CommitDataModel, CommitStatusTypeEnum} from "../models/commit-data.model";
-import {filter} from "rxjs";
+import {Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -10,46 +10,93 @@ export class StatisticsService {
 
   constructor(private commitService: CommitService) { }
 
-  public getTotalCommits(): number {
-    return this.commitService.getAllCommits().length;
+  public getTotalCommits(): Observable<number> {
+    return new Observable((ob) => {
+      this.commitService.getAllCommits()
+        .subscribe((commits) => {
+          const commitIds = [... new Set(commits.map(commit => commit.commit_id))]
+          ob.next(commitIds.length);
+          ob.complete();
+        });
+    });
   }
 
-  public getTotalPass(): number {
-    let commits =  this.commitService.getAllCommits();
-    return commits.filter((commit: CommitDataModel) => commit.status === CommitStatusTypeEnum.success).length;
+  public getTotalPass(): Observable<any> {
+    return new Observable((ob) => {
+      this.commitService.getAllCommits()
+        .subscribe((commits) => {
+          let result: number[] = [];
+          const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
+          commitIds.forEach((singleCommit) => {
+            if (commits.filter((commit: CommitDataModel) => commit.commit_id === singleCommit && commit.status === CommitStatusTypeEnum.failed).length === 0) {
+              result.push(singleCommit);
+            }
+          })
+          ob.next(result.length);
+          ob.complete();
+        });
+    });
   }
 
-  public getTotalPassRate(): number {
-    let commits =  this.commitService.getAllCommits();
-    const success = commits.filter((commit: CommitDataModel) => commit.status === CommitStatusTypeEnum.success).length;
-    let result = success/commits.length * 100;
-    return parseFloat(result.toFixed(2));
+  public getTotalPassRate(): Observable<any> {
+    return new Observable((ob) => {
+      this.commitService.getAllCommits()
+        .subscribe((commits) => {
+          let success: number[] = [];
+          const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
+          commitIds.forEach((singleCommit) => {
+            if (commits.filter((commit: CommitDataModel) => commit.commit_id === singleCommit && commit.status === CommitStatusTypeEnum.failed).length === 0) {
+              success.push(singleCommit);
+            }
+          })
+          let result2 = success.length/commitIds.length * 100;
+
+          ob.next(parseFloat(result2.toFixed(2)));
+          ob.complete();
+        });
+    });
   }
 
-  public getAverageTime() {
-    let commits =  this.commitService.getAllCommits();
-    // @ts-ignore
-    let commitStatistics = [];
-    const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
-    commitIds.forEach((commitId) => {
-      let filteredCommits = commits
-        .filter((commit: CommitDataModel) => commit.commit_id === commitId)
-        .sort((a,b) =>  new Date(a.start).getTime() - new Date(b.start).getTime())
-      let commitLifeTime = this.calculateTimeDifference(filteredCommits[0].start, filteredCommits[filteredCommits.length - 1].end);
-      let commitFinalStatus = filteredCommits[filteredCommits.length - 1].status;
-      let commitFinalEvent = filteredCommits[filteredCommits.length - 1].status;
-      commitStatistics.push({
-        commit_id: commitId,
-        final_event: commitFinalEvent,
-        final_status: commitFinalStatus,
-        start_time: filteredCommits[0].start,
-        end_time: filteredCommits[filteredCommits.length - 1].end,
-        commitLifeTime: commitLifeTime
-      })
-    })
-
-    // @ts-ignore
-    return commitStatistics;
+  public getAverageTime(): Observable<any> {
+    return new Observable((ob) => {
+      this.commitService.getAllCommits()
+        .subscribe((commits) => {
+          this.commitService.getAllCommits()
+            .subscribe((commits) => {
+              // @ts-ignore
+              let commitStatistics = [];
+              const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
+              commitIds.forEach((commitId) => {
+                let filteredCommits = commits
+                  .filter((commit: CommitDataModel) => commit.commit_id === commitId)
+                  .sort((a,b) =>  new Date(a.start).getTime() - new Date(b.start).getTime())
+                let commitFinalStatus = filteredCommits[filteredCommits.length - 1].status;
+                let commitFinalEvent = filteredCommits[filteredCommits.length - 1].event;
+                let commitLifeTime = this.calculateTimeDifference(filteredCommits[0].start, filteredCommits[filteredCommits.length - 1].end);
+                let events: any[] = [];
+                filteredCommits.forEach(commitEvent => {
+                  events.push({
+                    name: commitEvent.event,
+                    time: this.calculateTimeDifference(commitEvent.start, commitEvent.end).toFixed(2),
+                    status: commitEvent.status
+                  })
+                })
+                commitStatistics.push({
+                  commit_id: commitId,
+                  final_event: commitFinalEvent,
+                  final_status: commitFinalStatus,
+                  start_time: filteredCommits[0].start,
+                  end_time: filteredCommits[filteredCommits.length - 1].end,
+                  commitLifeTime: commitLifeTime.toFixed(2),
+                  events: events
+                })
+              })
+              // @ts-ignore
+              ob.next(commitStatistics);
+              ob.complete();
+            });
+        });
+    });
   }
 
   public calculateTimeDifference(d1: any, d2: any): number{
@@ -57,6 +104,6 @@ export class StatisticsService {
     let date2 = new Date(d2);
 
     let duration = date2.valueOf() - date1.valueOf();
-    return duration / (1000*60*60) % 24;
+    return duration / (1000*60) % 60;
   }
 }
