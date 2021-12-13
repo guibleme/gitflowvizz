@@ -2,7 +2,7 @@ export interface CommitDataModel {
   event: CommitEventTypeEnum;
   user: string;
   commit_id: number;
-  status: CommitStatusTypeEnum;
+  status: string;
   start: Date;
   end: Date;
   reviewer?: string[];

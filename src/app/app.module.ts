@@ -22,6 +22,8 @@ import { NgChartsModule } from 'ng2-charts';
 import {NgxEchartsModule} from "ngx-echarts";
 import {GanttChartModule} from "iamferraz-gantt-chart";
 import {GanttComponent} from "./features/gantt/gantt.component";
+import {MatExpansionModule} from "@angular/material/expansion";
+import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 
 @NgModule({
   declarations: [
@@ -51,7 +53,9 @@ import {GanttComponent} from "./features/gantt/gantt.component";
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
-    GanttChartModule
+    GanttChartModule,
+    MatExpansionModule,
+    MatProgressSpinnerModule
   ],
   providers: [
   ],

@@ -169,7 +169,7 @@ export const commits: any[] = [
   },
   {
     event: "pull",
-    user: "user1",
+    user: "user2",
     commit_id: "5",
     status: "success",
     start: "2021-12-01 15:14:11",
@@ -177,7 +177,7 @@ export const commits: any[] = [
   },
   {
     event: "patch",
-    user: "user1",
+    user: "user2",
     commit_id: "5",
     status: "success",
     start: "2021-12-01 15:21:11",
@@ -185,7 +185,7 @@ export const commits: any[] = [
   },
   {
     event: "build",
-    user: "user1",
+    user: "user2",
     commit_id: "5",
     status: "success",
     start: "2021-12-01 15:24:11",
@@ -193,7 +193,7 @@ export const commits: any[] = [
   },
   {
     event: "sanity",
-    user: "user1",
+    user: "user2",
     commit_id: "5",
     status: "failed",
     start: "2021-12-01 16:13:12",
@@ -230,5 +230,38 @@ export const commits: any[] = [
     status: "failed",
     start: "2021-12-01 16:13:12",
     end: "2021-12-01 17:25:11"
+  },
+
+  {
+    event: "pull",
+    user: "user2",
+    commit_id: "7",
+    status: "success",
+    start: "2021-12-01 17:14:11",
+    end: "2021-12-01 17:16:11"
+  },
+  {
+    event: "patch",
+    user: "user2",
+    commit_id: "7",
+    status: "success",
+    start: "2021-12-01 17:21:11",
+    end: "2021-12-01 17:22:11"
+  },
+  {
+    event: "build",
+    user: "user2",
+    commit_id: "7",
+    status: "success",
+    start: "2021-12-01 17:24:11",
+    end: "2021-12-01 17:55:11"
+  },
+  {
+    event: "sanity",
+    user: "user2",
+    commit_id: "7",
+    status: "failed",
+    start: "2021-12-01 18:13:12",
+    end: "2021-12-01 19:25:11"
   }
 ];

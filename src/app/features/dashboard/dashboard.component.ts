@@ -36,6 +36,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
 
   public commitGanttChartData: TaskModel[] = [];
   public commitPhaseGanttChartData: TaskModel[] = [];
+  public isCommitSelected: boolean = false;
+  public accordionText: string = 'Click on a commit to view detailed info';
 
   /**
    * The data to be displayed
@@ -48,6 +50,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
 
   public cardColor: string = '#232837';
 
+  public isLoading: boolean = true;
+
   private _destroy$ = new Subject();
 
   constructor(private statisticsService: StatisticsService,
@@ -58,6 +62,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
     this._numberChartDataInit();
     this._getUsers();
     this._getAverageTime();
+    this.isLoading = false;
   }
 
   /**
@@ -70,6 +75,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
         this.statisticsService.getTotalCommits(),
         this.statisticsService.getTotalPass(),
         this.statisticsService.getTotalPassRate(),
+        this.statisticsService.getAverageCommitDuration()
       ]).subscribe((response) => {
         data.push(
           {
@@ -84,6 +90,11 @@ export class DashboardComponent implements OnInit, OnDestroy{
             name: 'Total pass rate',
             value: response[2],
             unit: "%"
+          },
+          {
+            name: 'Average commit duration',
+            value: response[3],
+            unit: "min"
           }
         )
         this.numberCardsData =  data;
@@ -101,14 +112,18 @@ export class DashboardComponent implements OnInit, OnDestroy{
       })
   }
 
+  /**
+   * Gets the average time from the statistics controller
+   * @private
+   */
   private _getAverageTime(): void {
-    this.statisticsService.getAverageTime()
+    this.statisticsService.getCommitsEnhancedStats()
       .subscribe((response) => {
         this.commitStatistics = response;
         this.commitTimeBarChartLabels = this.commitStatistics.map(commit => 'Commit #'+ commit.commit_id);
         this.commitTimeBarChartData = this._barChartDataBuilder(response);
-         // this.commitGanttChartData = this._ganttChartDataBuilder(response);
-        this.commitGanttChartData = this._ganttPhasesChartDataBuilder(response);
+         this.commitGanttChartData = this._ganttChartDataBuilder(response);
+        // this.commitGanttChartData = this._ganttPhasesChartDataBuilder(response);
       })
   }
 
@@ -168,7 +183,8 @@ export class DashboardComponent implements OnInit, OnDestroy{
         donePercentage: this._calculateCommitDonePercentage(commit.final_event),
         owner: commit.user,
         time: commit.commitLifeTime,
-        status: commit.final_event,
+        status: commit.status? commit.status : commit.final_event === 'merge' ? 'success' : 'failed',
+        event: commit.final_event,
         image: ''
       }
       result.push(commitData);
@@ -176,8 +192,17 @@ export class DashboardComponent implements OnInit, OnDestroy{
     return result;
   }
 
-  private _ganttPhasesChartDataBuilder(data: any): TaskModel[] {
+  /**
+   * Builds the phase view for a commit
+   * @param data
+   * @param commitId
+   * @private
+   */
+  private _ganttPhasesChartDataBuilder(data: any, commitId?: number): TaskModel[] {
     let result: TaskModel[] = [];
+    if (commitId) {
+      data = data.filter((commit: any) => commit.commit_id == commitId);
+    }
     data.map((commit: any, index: number)  => {
       commit.events.forEach((event: any) => {
         // @ts-ignore
@@ -190,7 +215,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
           start: event.start_time,
           end: event.end_time,
           taskDependencies: [],
-          donePercentage: event.status === 'success' || event.status === 'approved' ? 100 : 0,
+          donePercentage: event.status === 'success' || event.status === 'approved' || (event.name === 'merge' && event.status !== 'failed') ? 100 : 0,
           owner: commit.user,
           time: event.time,
           event: event.name,
@@ -208,6 +233,7 @@ export class DashboardComponent implements OnInit, OnDestroy{
    * @param user
    */
   public filterUser(user: MatSelectChange) {
+    this.isLoading = true;
     if (user.value) {
       this.stateService.currentlySelectedUser = user.value;
     } else {
@@ -216,8 +242,14 @@ export class DashboardComponent implements OnInit, OnDestroy{
     this._numberChartDataInit();
     this._getUsers();
     this._getAverageTime();
+    this.isLoading = false;
   }
 
+  /***
+   * Calculates the percentage of done of a commit based on its git phase
+   * @param commitPhase
+   * @private
+   */
   private _calculateCommitDonePercentage(commitPhase: string): number {
     switch (commitPhase) {
       case 'pull':
@@ -237,7 +269,21 @@ export class DashboardComponent implements OnInit, OnDestroy{
     }
   }
 
-
+  /**
+   * Handles the click selection of a commit
+   * @param event
+   */
+  public commitSelected(event:any) {
+    this.isLoading = true;
+    this.stateService.currentlySelectedCommit = event.taskId;
+    this.accordionText = `${event.taskName} finished with ${event.status} status on ${event.event} phase. Its total duration was ${event.time} minutes.`
+    this.statisticsService.getCommitsEnhancedStats()
+      .subscribe((response) => {
+        this.commitPhaseGanttChartData = this._ganttPhasesChartDataBuilder(response, event.taskId);
+        this.isCommitSelected = true;
+        this.isLoading = false;
+      });
+  }
   /**
    * Destroys the component
    */

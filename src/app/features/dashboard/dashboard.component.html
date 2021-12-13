@@ -10,37 +10,67 @@
     </mat-select>
   </mat-form-field></span>
   </div>
-  <mat-divider></mat-divider>
-  <section class="number-card-row">
-    <mat-card *ngFor="let data of numberCardsData">
-      <div class="mat-title number-card-value">{{data.value}} {{data.unit}}</div>
-      <div class="mat-card-subtitle number-card-name">{{data.name}}</div>
-    </mat-card>
-  </section>
-  <div *ngIf="commitStatistics" class="commit-life-time-chart">
-    <mat-card>
-      <div class="mat-card-subtitle number-card-name">Commit lifetime x phase (in minutes)</div>
-      <canvas baseChart
-              [datasets]="commitTimeBarChartData"
-              [labels]="commitTimeBarChartLabels"
-              [options]="commitTimeBarChartOptions"
-              [plugins]="commitTimeBarChartPlugins"
-              [legend]="commitTimeBarChartLegend"
-              [type]="commitTimeBarChartType">
-      </canvas>
-    </mat-card>
-  </div>
+  <mat-divider class="spinner"></mat-divider>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <div *ngIf="!isLoading">
+    <div>
+      <section class="number-card-row">
+        <mat-card *ngFor="let data of numberCardsData">
+          <div class="mat-title number-card-value">{{data.value}} {{data.unit}}</div>
+          <div class="mat-card-subtitle number-card-name">{{data.name}}</div>
+        </mat-card>
+      </section>
+      <div *ngIf="commitStatistics" class="commit-life-time-chart-section">
+        <mat-card>
+          <div class="mat-card-subtitle number-card-name">Commit lifetime x phase (in minutes)</div>
+          <canvas baseChart
+                  height="100"
+                  [datasets]="commitTimeBarChartData"
+                  [labels]="commitTimeBarChartLabels"
+                  [options]="commitTimeBarChartOptions"
+                  [plugins]="commitTimeBarChartPlugins"
+                  [legend]="commitTimeBarChartLegend"
+                  [type]="commitTimeBarChartType">
+          </canvas>
+        </mat-card>
+      </div>
+    </div>
 
-  <mat-card class="gantt-chart">
-    <gui-gantt
-      *ngIf="commitGanttChartData"
-      [(taskData)]="commitGanttChartData"
-      [enableDataZoom]="true"
-      [enableGroup]="true"
-      [colorByStatus]="true"
-      [chartTitle]="'Commits timeline'"
-      [dateFormat]="'{hh}:{mm}'"
-      [colours]="['#c15046', '#5fb07d']">
-    </gui-gantt>
-  </mat-card>
+    <mat-card class="gantt-chart-section">
+      <gui-gantt
+        #commits
+        *ngIf="commitGanttChartData"
+        (taskClicked)="commitSelected($event)"
+        [(taskData)]="commitGanttChartData"
+        [enableDataZoom]="true"
+        [enableGroup]="true"
+        [colorByStatus]="true"
+        [chartTitle]="'Commits timeline'"
+        [dateFormat]="'{hh}:{mm}'"
+        [colours]="['#c15046', '#5fb07d']">
+      </gui-gantt>
+    </mat-card>
+    <div class="phases-section">
+      <mat-accordion >
+        <mat-expansion-panel hideToggle [disabled]="!isCommitSelected" [expanded]="isCommitSelected">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <span>{{accordionText}}</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+            <gui-gantt
+              #phases
+              *ngIf="isCommitSelected"
+              [(taskData)]="commitPhaseGanttChartData"
+              [enableDataZoom]="true"
+              [enableGroup]="true"
+              [colorByStatus]="true"
+              [chartTitle]="'Commit phases'"
+              [dateFormat]="'{hh}:{mm}'"
+              [colours]="['#c15046', '#5fb07d']">
+            </gui-gantt>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
+  </div>
 </div>

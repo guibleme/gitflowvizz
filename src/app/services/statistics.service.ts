@@ -10,6 +10,9 @@ export class StatisticsService {
 
   constructor(private commitService: CommitService) { }
 
+  /**
+   * Gets the total number of commits
+   */
   public getTotalCommits(): Observable<number> {
     return new Observable((ob) => {
       this.commitService.getAllCommits()
@@ -21,6 +24,9 @@ export class StatisticsService {
     });
   }
 
+  /**
+   * Gets the total commit pass rate
+   */
   public getTotalPass(): Observable<any> {
     return new Observable((ob) => {
       this.commitService.getAllCommits()
@@ -28,7 +34,7 @@ export class StatisticsService {
           let result: number[] = [];
           const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
           commitIds.forEach((singleCommit) => {
-            if (commits.filter((commit: CommitDataModel) => commit.commit_id === singleCommit && commit.status === CommitStatusTypeEnum.failed).length === 0) {
+            if (commits.filter((commit: CommitDataModel) => commit.commit_id === singleCommit && commit.status === 'failed').length === 0) {
               result.push(singleCommit);
             }
           })
@@ -38,6 +44,9 @@ export class StatisticsService {
     });
   }
 
+  /**
+   * Gets the total pass rate
+   */
   public getTotalPassRate(): Observable<any> {
     return new Observable((ob) => {
       this.commitService.getAllCommits()
@@ -45,7 +54,7 @@ export class StatisticsService {
           let success: number[] = [];
           const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
           commitIds.forEach((singleCommit) => {
-            if (commits.filter((commit: CommitDataModel) => commit.commit_id === singleCommit && commit.status === CommitStatusTypeEnum.failed).length === 0) {
+            if (commits.filter((commit: CommitDataModel) => commit.commit_id === singleCommit && commit.status === 'failed').length === 0) {
               success.push(singleCommit);
             }
           })
@@ -57,7 +66,10 @@ export class StatisticsService {
     });
   }
 
-  public getAverageTime(): Observable<any> {
+  /**
+   * Gets the enhanced and proccessed stats for commits, to be used with the gannt chart
+   */
+  public getCommitsEnhancedStats(): Observable<any> {
     return new Observable((ob) => {
       this.commitService.getAllCommits()
         .subscribe((commits) => {
@@ -102,6 +114,32 @@ export class StatisticsService {
     });
   }
 
+  /**
+   * Gets the average commit duration
+   */
+  public getAverageCommitDuration(): Observable<any> {
+    return new Observable((ob) => {
+      this.commitService.getAllCommits()
+        .subscribe((commits) => {
+          let commitStatistics: number[] = [];
+          const commitIds = [... new Set(commits.map(commit => commit.commit_id))];
+          commitIds.forEach((commitId) => {
+            let filteredCommits = commits
+              .filter((commit: CommitDataModel) => commit.commit_id === commitId)
+            let commitLifeTime = this.calculateTimeDifference(filteredCommits[0].start, filteredCommits[filteredCommits.length - 1].end);
+            commitStatistics.push(
+              parseInt(commitLifeTime.toFixed(2)))
+          })
+          let result = commitStatistics.reduce((a, b) => a + b, 0)/commitStatistics.length;
+          ob.next(result.toFixed(2));
+          ob.complete();
+        });
+    });
+  }
+
+  /**
+   * Gets the overall commit stats to build the gantt chart
+   */
   public getCommitStats(): Observable<any> {
     return new Observable((ob) => {
       this.commitService.getAllCommits()
@@ -145,6 +183,11 @@ export class StatisticsService {
     });
   }
 
+  /**
+   * Calculates the difference in minutes between 2 dates
+   * @param d1
+   * @param d2
+   */
   public calculateTimeDifference(d1: any, d2: any): number{
     let date1 = new Date(d1);
     let date2 = new Date(d2);

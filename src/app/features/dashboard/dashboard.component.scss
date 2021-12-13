@@ -19,10 +19,16 @@
     justify-content: start;
     gap: 1rem;
     margin-top: 1rem;
+    mat-card {
+      flex-grow: 1;
+    }
   }
 
-  .commit-life-time-chart, .gantt-chart {
+  .commit-life-time-chart-section, .gantt-chart-section, .phases-section {
     margin-top: 1rem;
   }
 
+  mat-spinner {
+    margin: 1rem auto;
+  }
 }
